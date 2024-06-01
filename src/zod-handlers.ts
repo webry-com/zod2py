@@ -1,4 +1,4 @@
-import { Primitive, z } from "zod"
+import { z } from "zod"
 import {
   capitalizeAndFormatClassName,
   getDiscriminator,
@@ -408,8 +408,6 @@ export default class ZodTranslator {
       dataStructure: hasOneAny ? [] : [...new Set(totalDataStructures)],
     }
   }
-
-
 
   /* #endregion Handlers */
 

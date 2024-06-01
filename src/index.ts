@@ -11,7 +11,7 @@ import { getDiff } from "recursive-diff"
 
 class Zod2Py {
   static CONFIG_FILES: string[] = ["zod2py.config.json", ".zod2py.json"]
-  static IGNORE_FILES = [/(^|[\/\\])\../, "node_modules/*", ".git/*"]
+  static IGNORE_FILES = [/(^|[/\\])\../, "node_modules/*", ".git/*"]
 
   cli: Command
   cliSpinner: Ora
@@ -66,22 +66,22 @@ class Zod2Py {
   }
 
   async translate(filePath: string) {
-    const moduleObj = await import(
-      "file://" + path.join(process.cwd(), filePath) + "?t=" + Date.now()
-    )
+    const moduleObj = await import(`file://${path.join(process.cwd(), filePath)}?t=${Date.now()}`)
     const pyFile = this.getPythonFilePath(filePath)
+    const normalizedPath = path.normalize(filePath)
+    const normalizedPyPath = path.normalize(pyFile)
 
     if (moduleObj.default) {
       const baseName = path.basename(filePath, ".js")
       const ztp = new ZodToPython(pyFile)
       ztp.convert(moduleObj.default, capitalizeAndFormatClassName(baseName))
-      this.cliSpinner.info("Reloaded " + filePath)
+      this.cliSpinner.info(`Reloaded ${normalizedPyPath} (${normalizedPath})`)
       return
     }
 
     if (Object.keys(moduleObj).length === 0) {
       fs.unlinkSync(path.join(process.cwd(), pyFile))
-      this.cliSpinner.info("Deleting " + filePath + " (No schemas found in file)")
+      this.cliSpinner.info(`Deleting ${normalizedPyPath} (No schemas found in ${normalizedPath})`)
       return
     }
 
@@ -89,7 +89,7 @@ class Zod2Py {
       const baseName = key
       const ztp = new ZodToPython(pyFile)
       ztp.convert(moduleObj[key], capitalizeAndFormatClassName(baseName))
-      this.cliSpinner.info("Reloaded " + filePath)
+      this.cliSpinner.info(`Reloaded ${normalizedPyPath} (${normalizedPath})`)
     }
   }
 
@@ -127,7 +127,7 @@ class Zod2Py {
     Object.assign(this.config, result.data)
   }
 
-  private onConfigChange(op: string, [name, i]: [string, number]) {
+  private onConfigChange(op: string, [name]: [string, number]) {
     if (name === "output" && op === "update") {
       this.cliSpinner.info("Config output changed. Deleting old files and restarting watchers...")
       const oldOutput = this.config.output
@@ -136,7 +136,7 @@ class Zod2Py {
         persistent: true,
       })
       deleteWatcher.on("add", (simplePath) => {
-        this.cliSpinner.info("Deleting " + this.getPythonFilePath(simplePath, oldOutput))
+        this.cliSpinner.info(`Deleting ${this.getPythonFilePath(simplePath, oldOutput)}(old)`)
         if (fs.existsSync(this.getPythonFilePath(simplePath, oldOutput))) {
           fs.unlinkSync(path.join(process.cwd(), this.getPythonFilePath(simplePath, oldOutput)))
         }
@@ -160,6 +160,7 @@ class Zod2Py {
             config,
           })
           return
+          // eslint-disable-next-line no-empty
         } catch (error) {}
       }
 
