@@ -5,11 +5,10 @@
 
 
 from dataclasses import dataclass
-from typing import Optional
 
 @dataclass
 class Team:
     name: str
     members: list[str]
-    description: str
-    user: Optional[str]
+    description: Literal["asd"]
+    user: Optional[str]Team

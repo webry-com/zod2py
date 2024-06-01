@@ -37,6 +37,7 @@
     "chokidar": "^3.6.0",
     "commander": "^12.1.0",
     "ora": "^8.0.1",
+    "recursive-diff": "^1.0.9",
     "zod": "^3.23.8"
   },
   "devDependencies": {
