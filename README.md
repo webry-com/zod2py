@@ -11,14 +11,14 @@ This is a simple tool to convert Zod to Python. You can use this tool to sync yo
 ```json
 {
   "scripts": {
-    "watch:z2p": "zod2py watch",
-    "run:z2p": "zod2py run"
+    "watch": "zod2py watch",
+    "run": "zod2py run"
   }
 }
 ```
 
-4. Run `npm run watch:zod` to start the watcher (e.g. when developing)
-5. Or run `npm run run:zod` to run the conversion once (e.g. when building)
+4. Run `npm run watch` to start the watcher (e.g. when developing)
+5. Or run `npm run run` to run the conversion once (e.g. when building)
 
 ## Example
 
