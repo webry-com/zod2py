@@ -1,11 +1,12 @@
 {
   "name": "zod2py",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Convert Zod schemas to Python dataclasses",
   "type": "module",
   "bin": {
-    "zod2py": "./dist/index.js"
+    "zod2py": "dist/index.js"
   },
+  "main": "dist/index.js",
   "scripts": {
     "build": "npm run build:clean && npm run build:compile",
     "build:compile": "tsc",

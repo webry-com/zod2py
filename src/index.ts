@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { Command } from "commander"
 import ora, { Ora } from "ora"
 import path from "path"
