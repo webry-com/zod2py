@@ -11,5 +11,5 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["./src/**/*.ts", "./src/**/*.json", "src/schema/user.js", "src/schema/team.js"]
+  "include": ["./src/**/*.ts", "./src/**/*.json", "src/schema/user.z2p.js", "src/schema/team.z2p.js"]
 }

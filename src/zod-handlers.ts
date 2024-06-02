@@ -463,6 +463,6 @@ export default class ZodTranslator {
   }
 
   static isNamedPyStructure(schema: z.ZodTypeAny): boolean {
-    return schema instanceof z.ZodObject || schema instanceof z.ZodEnum
+    return schema.constructor.name === "ZodObject" || schema.constructor.name === "ZodEnum"
   }
 }

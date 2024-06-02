@@ -4,7 +4,7 @@
     {
       "label": "run",
       "type": "shell",
-      "command": "node ./dist/index.js run",
+      "command": "node ./dist/index.js",
       "group": {
         "kind": "build",
         "isDefault": true

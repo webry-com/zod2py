@@ -8,7 +8,7 @@ from typing import Optional
 from dataclasses import dataclass
 
 @dataclass
-class Team:
+class Teamz2p:
     name: str
     members: list[str]
     description: Literal["asd"]

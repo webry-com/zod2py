@@ -1,0 +1,4 @@
+{
+  "files": ["src/**/*.z2p.js"],
+  "output": "{FOLDER}/{FILE}.py"
+}

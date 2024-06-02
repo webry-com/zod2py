@@ -1,6 +1,5 @@
 import { Command } from "commander"
 import ora, { Ora } from "ora"
-import packageJSON from "../package.json" with { type: "json" }
 import path from "path"
 import fs from "fs"
 import { FSWatcher, watch } from "chokidar"
@@ -32,37 +31,84 @@ class Zod2Py {
   }
 
   async boot() {
-    this.cli.version(packageJSON.version)
     this.cli.description("Zod to Python CLI")
+    this.cli
+      .command("init")
+      .description("Create a default config file.")
+      .action(() => {
+        const fileExists = Zod2Py.CONFIG_FILES.some((file) =>
+          fs.existsSync(path.join(process.cwd(), file)),
+        )
+        if (fileExists) {
+          this.cliSpinner.fail("Config file already exists.")
+          process.exit(0)
+        } else {
+          const defaultConfig = JSON.stringify(this.config, null, 2)
+          fs.writeFileSync(path.join(process.cwd(), Zod2Py.CONFIG_FILES[0]), defaultConfig)
+          this.cliSpinner.succeed("Config file created.")
+          process.exit(0)
+        }
+      })
+    this.cli
+      .command("watch")
+      .description("Start watching files.")
+      .action(async () => {
+        this.cliSpinner.start("Reading Config...")
+        await this.loadConfig()
+
+        this.cliSpinner.succeed("Config found & loaded.")
+        this.cliSpinner.start("Watching...")
+        await this.bootWatchers()
+      })
+    this.cli
+      .command("run")
+      .description("Run the watcher once.")
+      .action(async () => {
+        this.cliSpinner.start("Reading Config...")
+        await this.loadConfig()
+
+        this.cliSpinner.succeed("Config found & loaded.")
+        this.cliSpinner.start("Running...")
+        await this.bootWatchers(false)
+      })
     this.cli.parse()
-
-    this.cliSpinner.start("Reading Config...")
-    await this.loadConfig()
-
-    this.cliSpinner.succeed("Config found & loaded.")
-    this.cliSpinner.start("Watching...")
-    await this.bootWatchers()
   }
 
-  async bootWatchers() {
-    if (this.cliConfigWatcher) this.cliConfigWatcher.close()
-    this.cliConfigWatcher = watch(Zod2Py.CONFIG_FILES, {
-      persistent: true,
-    })
-    this.cliConfigWatcher.on("add", () => this.loadConfig())
-    this.cliConfigWatcher.on("change", () => this.loadConfig())
-    this.cliConfigWatcher.on("unlink", () => this.loadConfig())
+  async bootWatchers(listen: boolean = true) {
+    // Watch config if we are listening
+    if (listen) {
+      if (this.cliConfigWatcher) this.cliConfigWatcher.close()
+      this.cliConfigWatcher = watch(Zod2Py.CONFIG_FILES, {
+        persistent: true,
+      })
+      this.cliConfigWatcher.on("add", () => this.loadConfig())
+      this.cliConfigWatcher.on("change", () => this.loadConfig())
+      this.cliConfigWatcher.on("unlink", () => this.loadConfig())
+    }
 
     if (this.cliFilesWatcher) this.cliFilesWatcher.close()
     this.cliFilesWatcher = watch(this.config.files, {
       ignored: Zod2Py.IGNORE_FILES,
       persistent: true,
     })
-    this.cliFilesWatcher.on("add", (simplePath) => this.translate(simplePath))
     this.cliFilesWatcher.on("change", (simplePath) => this.translate(simplePath))
     this.cliFilesWatcher.on("unlink", (simplePath) => {
       fs.unlinkSync(path.join(process.cwd(), this.getPythonFilePath(simplePath)))
     })
+    const oneTimePromises: Promise<void>[] = []
+    this.cliFilesWatcher.on("add", (simplePath) => {
+      oneTimePromises.push(this.translate(simplePath))
+    })
+
+    // If we are not listening, we will run once and exit
+    if (!listen) {
+      this.cliFilesWatcher.on("ready", () => {
+        Promise.allSettled(oneTimePromises).then(() => {
+          this.cliSpinner.succeed("Completed.")
+          process.exit(0)
+        })
+      })
+    }
   }
 
   async translate(filePath: string) {
@@ -136,7 +182,7 @@ class Zod2Py {
         persistent: true,
       })
       deleteWatcher.on("add", (simplePath) => {
-        this.cliSpinner.info(`Deleting ${this.getPythonFilePath(simplePath, oldOutput)}(old)`)
+        this.cliSpinner.info(`Deleting ${this.getPythonFilePath(simplePath, oldOutput)} (old)`)
         if (fs.existsSync(this.getPythonFilePath(simplePath, oldOutput))) {
           fs.unlinkSync(path.join(process.cwd(), this.getPythonFilePath(simplePath, oldOutput)))
         }
@@ -226,8 +272,8 @@ function createConfigValidationSchema(cliSpinner: Ora) {
 
 function getDefaultConfig(cliSpinner: Ora): ZTPConfig {
   const config = {
-    files: ["src/**/*.schema.js"],
-    output: "{FOLDER}/{FILE}.api.py",
+    files: ["src/**/*.z2p.js"],
+    output: "{FOLDER}/z2p/{FILE}.py",
   }
   const validationSchema = createConfigValidationSchema(cliSpinner)
   const result = validationSchema.safeParse(config)

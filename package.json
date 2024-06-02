@@ -1,10 +1,10 @@
 {
-  "name": "zod-to-python",
+  "name": "zod2py",
   "version": "0.0.1",
   "description": "Convert Zod schemas to Python dataclasses",
   "type": "module",
   "bin": {
-    "zod-to-python": "./dist/index.js"
+    "zod2py": "./dist/index.js"
   },
   "scripts": {
     "build": "npm run build:clean && npm run build:compile",
@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/webry-com/zod-to-python"
+    "url": "git+https://github.com/webry-com/zod2py"
   },
   "keywords": [
     "zod",
@@ -30,9 +30,9 @@
   "author": "Samuel Braun <sam@webry.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/webry-com/zod-to-python/issues"
+    "url": "https://github.com/webry-com/zod2py/issues"
   },
-  "homepage": "https://github.com/webry-com/zod-to-python#readme",
+  "homepage": "https://github.com/webry-com/zod2py#readme",
   "dependencies": {
     "chokidar": "^3.6.0",
     "commander": "^12.1.0",

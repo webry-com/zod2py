@@ -1,4 +1,0 @@
-{
-  "files": ["**/schema/*.js"],
-  "output": "{FOLDER}/api/{FILE}.api.py"
-}
