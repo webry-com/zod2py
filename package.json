@@ -1,6 +1,6 @@
 {
   "name": "zod-to-python",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Convert Zod schemas to Python dataclasses",
   "type": "module",
   "bin": {
