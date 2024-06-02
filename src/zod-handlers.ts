@@ -69,13 +69,14 @@ export default class ZodTranslator {
     return {
       success: true,
       code: className,
-      imports: ["dataclass"],
+      imports: [...accumulatedImports, "dataclass"],
       dataStructure: [
         {
           name: className,
           fields: fieldEntries,
           type: "dataclass",
         },
+        ...accumulatedDataclasses,
       ],
     }
   }
@@ -456,7 +457,12 @@ export default class ZodTranslator {
         dataclass: "from dataclasses import dataclass",
         callable: "from typing import Callable",
         any: "from typing import Any",
+        alias: "from typing import TypeAlias",
       }[importType] || ""
     )
+  }
+
+  static isNamedPyStructure(schema: z.ZodTypeAny): boolean {
+    return schema instanceof z.ZodObject || schema instanceof z.ZodEnum
   }
 }

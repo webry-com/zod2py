@@ -1,6 +1,6 @@
 import { expect, test } from "vitest"
 import ZodTranslator from "../zod-handlers.js"
-import { Primitive, z } from "zod"
+import { z } from "zod"
 
 test("ZodString translates correctly", () => {
   const translator = new ZodTranslator(z.string())
@@ -9,7 +9,7 @@ test("ZodString translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("str")
-  expect(result.imports).toEqual([])
+  expect(new Set(result.imports)).toEqual(new Set([]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -23,11 +23,11 @@ test("ZodNumber & ZodBigInt translate correctly", () => {
   if (!resultNumber.success || !resultBigInt.success) return
 
   expect(resultNumber.code).toBe("float")
-  expect(resultNumber.imports).toEqual([])
+  expect(new Set(resultNumber.imports)).toEqual(new Set([]))
   expect(resultNumber.dataStructure).toEqual([])
 
   expect(resultBigInt.code).toBe("float")
-  expect(resultBigInt.imports).toEqual([])
+  expect(new Set(resultBigInt.imports)).toEqual(new Set([]))
   expect(resultBigInt.dataStructure).toEqual([])
 })
 
@@ -38,7 +38,7 @@ test("ZodBoolean translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("bool")
-  expect(result.imports).toEqual([])
+  expect(new Set(result.imports)).toEqual(new Set([]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -49,7 +49,7 @@ test("ZodArray translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("list[str]")
-  expect(result.imports).toEqual([])
+  expect(new Set(result.imports)).toEqual(new Set([]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -58,7 +58,7 @@ test("ZodObject translates correctly", () => {
     z.object({
       name: z.string(),
       age: z.number(),
-      isStudent: z.boolean(),
+      isStudent: z.boolean().optional(),
     }),
   )
   const result = translator.rootTranslate("Test")
@@ -66,11 +66,11 @@ test("ZodObject translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Test")
-  expect(result.imports).toEqual(["dataclass"])
+  expect(new Set(result.imports)).toEqual(new Set(["dataclass", "optional"]))
   expect(result.dataStructure).toEqual([
     {
       name: "Test",
-      fields: ["name: str", "age: float", "isStudent: bool"],
+      fields: ["name: str", "age: float", "isStudent: Optional[bool]"],
       type: "dataclass",
     },
   ])
@@ -91,11 +91,16 @@ test("Nested ZodObject translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Test")
-  expect(result.imports).toEqual(["dataclass"])
+  expect(new Set(result.imports)).toEqual(new Set(["dataclass"]))
   expect(result.dataStructure).toEqual([
     {
       name: "Test",
       fields: ["user: TestUser"],
+      type: "dataclass",
+    },
+    {
+      name: "TestUser",
+      fields: ["name: str", "age: float", "isStudent: bool"],
       type: "dataclass",
     },
   ])
@@ -118,9 +123,14 @@ test("Nested ZodArray translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Test")
-  expect(result.imports).toEqual(["dataclass"])
+  expect(new Set(result.imports)).toEqual(new Set(["dataclass"]))
   expect(result.dataStructure).toEqual([
     { name: "Test", fields: ["users: list[TestUsers]"], type: "dataclass" },
+    {
+      name: "TestUsers",
+      fields: ["name: str", "age: float", "isStudent: bool"],
+      type: "dataclass",
+    },
   ])
 })
 
@@ -131,7 +141,7 @@ test("ZodUnion translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("str | float")
-  expect(result.imports).toEqual([])
+  expect(new Set(result.imports)).toEqual(new Set([]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -142,7 +152,7 @@ test("ZodLiteral translates correctly with string", () => {
   if (!result.success) return
 
   expect(result.code).toBe('Literal["test"]')
-  expect(result.imports).toEqual(["literal"])
+  expect(new Set(result.imports)).toEqual(new Set(["literal"]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -153,7 +163,7 @@ test("ZodLiteral translates correctly with number", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Literal[5]")
-  expect(result.imports).toEqual(["literal"])
+  expect(new Set(result.imports)).toEqual(new Set(["literal"]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -164,7 +174,7 @@ test("ZodLiteral translates correctly with boolean", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Literal[True]")
-  expect(result.imports).toEqual(["literal"])
+  expect(new Set(result.imports)).toEqual(new Set(["literal"]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -175,7 +185,7 @@ test("ZodLiteral translates correctly with bigint", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Literal[5]")
-  expect(result.imports).toEqual(["literal"])
+  expect(new Set(result.imports)).toEqual(new Set(["literal"]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -186,7 +196,7 @@ test("ZodLiteral translates correctly with null", () => {
   if (!result.success) return
 
   expect(result.code).toBe("None")
-  expect(result.imports).toEqual([])
+  expect(new Set(result.imports)).toEqual(new Set([]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -197,7 +207,7 @@ test("ZodLiteral translates correctly with undefined", () => {
   if (!result.success) return
 
   expect(result.code).toBe("None")
-  expect(result.imports).toEqual([])
+  expect(new Set(result.imports)).toEqual(new Set([]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -236,13 +246,13 @@ test("ZodLiteral translates correctly with symbol", () => {
   expect(nullResult.code).toBe("None")
   expect(undefinedResult.code).toBe("None")
 
-  expect(stringResult.imports).toEqual(["literal"])
-  expect(numberResult.imports).toEqual(["literal"])
-  expect(bigintResult.imports).toEqual(["literal"])
-  expect(booleanResult.imports).toEqual(["literal"])
-  expect(symbolResult.imports).toEqual(["literal"])
-  expect(nullResult.imports).toEqual([])
-  expect(undefinedResult.imports).toEqual([])
+  expect(new Set(stringResult.imports)).toEqual(new Set(["literal"]))
+  expect(new Set(numberResult.imports)).toEqual(new Set(["literal"]))
+  expect(new Set(bigintResult.imports)).toEqual(new Set(["literal"]))
+  expect(new Set(booleanResult.imports)).toEqual(new Set(["literal"]))
+  expect(new Set(symbolResult.imports)).toEqual(new Set(["literal"]))
+  expect(new Set(nullResult.imports)).toEqual(new Set([]))
+  expect(new Set(undefinedResult.imports)).toEqual(new Set([]))
 
   expect(stringResult.dataStructure).toEqual([])
   expect(numberResult.dataStructure).toEqual([])
@@ -260,7 +270,7 @@ test("ZodEnum translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Test")
-  expect(result.imports).toEqual(["enum"])
+  expect(new Set(result.imports)).toEqual(new Set(["enum"]))
   expect(result.dataStructure).toEqual([
     {
       name: "Test",
@@ -277,7 +287,7 @@ test("ZodTuple translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Tuple[str, float]")
-  expect(result.imports).toEqual(["tuple"])
+  expect(new Set(result.imports)).toEqual(new Set(["tuple"]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -288,7 +298,7 @@ test("ZodDate translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("datetime.date")
-  expect(result.imports).toEqual(["datetime"])
+  expect(new Set(result.imports)).toEqual(new Set(["datetime"]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -299,7 +309,7 @@ test("ZodRecord translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("dict[str, float]")
-  expect(result.imports).toEqual([])
+  expect(new Set(result.imports)).toEqual(new Set([]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -310,7 +320,7 @@ test("ZodNullable translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Optional[str]")
-  expect(result.imports).toEqual(["optional"])
+  expect(new Set(result.imports)).toEqual(new Set(["optional"]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -321,7 +331,7 @@ test("ZodOptional translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Optional[str]")
-  expect(result.imports).toEqual(["optional"])
+  expect(new Set(result.imports)).toEqual(new Set(["optional"]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -332,7 +342,7 @@ test("ZodEffects translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("str")
-  expect(result.imports).toEqual([])
+  expect(new Set(result.imports)).toEqual(new Set([]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -343,7 +353,7 @@ test("ZodBranded translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("str")
-  expect(result.imports).toEqual([])
+  expect(new Set(result.imports)).toEqual(new Set([]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -354,7 +364,7 @@ test("ZodDefault translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("str")
-  expect(result.imports).toEqual([])
+  expect(new Set(result.imports)).toEqual(new Set([]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -388,7 +398,7 @@ test("ZodDiscriminatedUnion with String Literal Descriminator translates correct
       type: "dataclass",
     },
   ])
-  expect(result.imports).toEqual(["literal", "dataclass"])
+  expect(new Set(result.imports)).toEqual(new Set(["literal", "dataclass"]))
 })
 
 test("ZodDiscriminatedUnion without String Literal Descriminator translates correctly", () => {
@@ -439,7 +449,7 @@ test("ZodDiscriminatedUnion without String Literal Descriminator translates corr
       type: "dataclass",
     },
   ])
-  expect(result.imports).toEqual(["literal", "dataclass"])
+  expect(new Set(result.imports)).toEqual(new Set(["literal", "dataclass"]))
 })
 
 test("ZodUnknown translates correctly", () => {
@@ -449,7 +459,7 @@ test("ZodUnknown translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Any")
-  expect(result.imports).toEqual(["any"])
+  expect(new Set(result.imports)).toEqual(new Set(["any"]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -460,7 +470,7 @@ test("ZodUndefined translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("None")
-  expect(result.imports).toEqual([])
+  expect(new Set(result.imports)).toEqual(new Set([]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -471,7 +481,7 @@ test("ZodSymbol translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Any")
-  expect(result.imports).toEqual(["any"])
+  expect(new Set(result.imports)).toEqual(new Set(["any"]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -482,7 +492,7 @@ test("ZodNever translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("None")
-  expect(result.imports).toEqual([])
+  expect(new Set(result.imports)).toEqual(new Set([]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -493,7 +503,7 @@ test("ZodPromise translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Any")
-  expect(result.imports).toEqual(["any"])
+  expect(new Set(result.imports)).toEqual(new Set(["any"]))
   expect(result.dataStructure).toEqual([])
 })
 
@@ -504,6 +514,6 @@ test("ZodFunction translates correctly", () => {
   if (!result.success) return
 
   expect(result.code).toBe("Callable")
-  expect(result.imports).toEqual(["callable"])
+  expect(new Set(result.imports)).toEqual(new Set(["callable"]))
   expect(result.dataStructure).toEqual([])
 })

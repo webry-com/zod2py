@@ -73,7 +73,7 @@ class Zod2Py {
 
     if (moduleObj.default) {
       const baseName = path.basename(filePath, ".js")
-      const ztp = new ZodToPython(pyFile)
+      const ztp = new ZodToPython(pyFile, this.cliSpinner)
       ztp.convert(moduleObj.default, capitalizeAndFormatClassName(baseName))
       this.cliSpinner.info(`Reloaded ${normalizedPyPath} (${normalizedPath})`)
       return
@@ -87,7 +87,7 @@ class Zod2Py {
 
     for (const key in moduleObj) {
       const baseName = key
-      const ztp = new ZodToPython(pyFile)
+      const ztp = new ZodToPython(pyFile, this.cliSpinner)
       ztp.convert(moduleObj[key], capitalizeAndFormatClassName(baseName))
       this.cliSpinner.info(`Reloaded ${normalizedPyPath} (${normalizedPath})`)
     }
