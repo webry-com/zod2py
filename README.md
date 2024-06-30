@@ -3,6 +3,7 @@
 This is a simple tool to convert Zod to Python. You can use this tool to sync your Zod schema with your Python API and use Zod as a single source of truth.
 
 ## Getting Started
+*TypeScript is not supported yet.*
 
 1. `npm i -D zod2py`
 2. `npx zod2py init` to create the config file
